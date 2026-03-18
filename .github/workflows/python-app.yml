@@ -24,7 +24,7 @@ permissions:
 
 env:
   PYTHON_VERSION: "3.10"
-  IMAGE_REPOSITORY:
+  IMAGE_REPOSITORY: ${{ vars.IMAGE_REPOSITORY || 'pentakilo/owui-search-tool' }}
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -70,7 +70,7 @@ jobs:
     needs:
       - test
       - docker-build
-#    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch'
 
     steps:
       - name: Check out repository
