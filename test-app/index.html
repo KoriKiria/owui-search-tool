@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Search Tool API Tester</title>
+    <style>
+      :root {
+        --bg: #f1f0e9;
+        --panel: #fcfbf6;
+        --line: #cfc5b2;
+        --text: #1d1a15;
+        --muted: #6e6659;
+        --accent: #116466;
+        --accent-strong: #0b4b4c;
+        --ok: #1e6b45;
+        --bad: #9f2f2f;
+        --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        --sans: "Segoe UI", Helvetica, Arial, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: var(--sans);
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(17, 100, 102, 0.08), transparent 28%),
+          linear-gradient(180deg, #ebe7da 0%, var(--bg) 100%);
+      }
+
+      main {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 32px 20px 48px;
+      }
+
+      h1,
+      h2 {
+        margin: 0 0 12px;
+      }
+
+      p {
+        margin: 0 0 16px;
+        color: var(--muted);
+      }
+
+      .hero,
+      .panel {
+        border: 1px solid var(--line);
+        background: rgba(252, 251, 246, 0.92);
+        box-shadow: 0 12px 30px rgba(45, 39, 28, 0.05);
+      }
+
+      .hero {
+        margin-bottom: 24px;
+        padding: 24px;
+        border-radius: 20px;
+      }
+
+      .grid {
+        display: grid;
+        gap: 20px;
+        grid-template-columns: 1.1fr 0.9fr;
+      }
+
+      .panel {
+        padding: 20px;
+        border-radius: 18px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      input,
+      textarea,
+      select,
+      button {
+        width: 100%;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        font: inherit;
+      }
+
+      input,
+      textarea,
+      select {
+        padding: 12px 14px;
+        background: #fffcf7;
+      }
+
+      textarea {
+        min-height: 170px;
+        resize: vertical;
+        font-family: var(--mono);
+      }
+
+      button {
+        padding: 12px 14px;
+        cursor: pointer;
+        background: var(--accent);
+        color: white;
+        font-weight: 700;
+        border: 0;
+      }
+
+      button:hover {
+        background: var(--accent-strong);
+      }
+
+      .row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-bottom: 14px;
+      }
+
+      .stack > * + * {
+        margin-top: 14px;
+      }
+
+      .cases {
+        display: grid;
+        gap: 12px;
+      }
+
+      .case-btn {
+        text-align: left;
+        background: #eef7f6;
+        color: var(--text);
+        border: 1px solid var(--line);
+      }
+
+      .case-btn:hover {
+        background: #ddf0ef;
+      }
+
+      .status {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 700;
+        background: #e8e0d2;
+      }
+
+      .status.ok {
+        background: rgba(30, 107, 69, 0.12);
+        color: var(--ok);
+      }
+
+      .status.bad {
+        background: rgba(159, 47, 47, 0.12);
+        color: var(--bad);
+      }
+
+      pre {
+        margin: 0;
+        padding: 16px;
+        overflow: auto;
+        border-radius: 14px;
+        background: #171d1d;
+        color: #edf7f6;
+        min-height: 260px;
+        font-family: var(--mono);
+      }
+
+      .results {
+        display: grid;
+        gap: 12px;
+      }
+
+      .result-card {
+        padding: 14px;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: white;
+      }
+
+      .result-card a {
+        color: var(--accent-strong);
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .meta {
+        font-size: 14px;
+        color: var(--muted);
+      }
+
+      code {
+        font-family: var(--mono);
+      }
+
+      @media (max-width: 860px) {
+        .grid,
+        .row {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero">
+        <h1>Search Tool API Tester</h1>
+        <p>
+          This app exercises the Open WebUI OpenAPI tool server endpoints exposed by the
+          <code>search-tool</code> container.
+        </p>
+        <p>
+          Default target: <code>/api</code> through the bundled reverse proxy. This lets the browser call
+          the tool server without direct CORS setup.
+        </p>
+      </section>
+
+      <section class="grid">
+        <div class="panel stack">
+          <div class="row">
+            <div>
+              <label for="baseUrl">API Base URL</label>
+              <input id="baseUrl" value="/api" />
+            </div>
+            <div>
+              <label for="authToken">Bearer Token</label>
+              <input id="authToken" placeholder="Optional" />
+            </div>
+          </div>
+
+          <div>
+            <label for="endpoint">Endpoint</label>
+            <select id="endpoint">
+              <option value="/agent-search">POST /agent-search</option>
+              <option value="/extract-from-urls">POST /extract-from-urls</option>
+              <option value="/fetch-content">POST /fetch-content</option>
+              <option value="/healthz">GET /healthz</option>
+              <option value="/readyz">GET /readyz</option>
+              <option value="/health-check">POST /health-check</option>
+              <option value="/openapi.json">GET /openapi.json</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="payload">Request JSON</label>
+            <textarea id="payload">{
+  "query": "open webui",
+  "max_results": 3,
+  "search_depth": "basic",
+  "topic": "general",
+  "search_engine": "auto",
+  "language": "en",
+  "include_domains": [],
+  "exclude_domains": [],
+  "include_raw_content": false,
+  "extract_depth": "summary"
+}</textarea>
+          </div>
+
+          <button id="sendBtn">Send Request</button>
+        </div>
+
+        <div class="panel stack">
+          <h2>Validation Cases</h2>
+          <div class="cases">
+            <button class="case-btn" data-endpoint="/agent-search" data-payload='{"query":"open webui","max_results":3,"search_depth":"basic","topic":"general","search_engine":"auto","language":"en","include_domains":[],"exclude_domains":[],"include_raw_content":false,"extract_depth":"summary"}'>Agent search with explicit language</button>
+            <button class="case-btn" data-endpoint="/agent-search" data-payload='{"query":"open webui","max_results":3,"search_depth":"basic","topic":"general","search_engine":"bing","language":"en","include_domains":[],"exclude_domains":[],"include_raw_content":false,"extract_depth":"summary"}'>Explicit Bing search</button>
+            <button class="case-btn" data-endpoint="/agent-search" data-payload='{"query":"latest ai policy news","max_results":3,"search_depth":"advanced","topic":"news","search_engine":"mixed","language":"en","include_domains":[],"exclude_domains":[],"include_raw_content":false,"extract_depth":"summary"}'>Mixed-engine news search in English</button>
+            <button class="case-btn" data-endpoint="/agent-search" data-payload='{"query":"przepis na szarlotkę","max_results":3,"search_depth":"basic","topic":"general","search_engine":"auto","language":"pl","include_domains":[],"exclude_domains":[],"include_raw_content":false,"extract_depth":"summary"}'>Recipe search in Polish</button>
+            <button class="case-btn" data-endpoint="/agent-search" data-payload='{"query":"open webui","max_results":3,"search_engine":"google"}'>Explicit Google search</button>
+            <button class="case-btn" data-endpoint="/agent-search" data-payload='{"query":"   ","max_results":3}'>Blank query returns 400</button>
+            <button class="case-btn" data-endpoint="/extract-from-urls" data-payload='{"urls":["https://docs.openwebui.com/"],"focus_query":"open webui","include_raw_content":false}'>Extract content from known URL</button>
+            <button class="case-btn" data-endpoint="/fetch-content" data-payload='{"url":"https://docs.openwebui.com/","focus_query":"open webui","include_raw_content":false}'>Fetch single page content</button>
+            <button class="case-btn" data-endpoint="/extract-from-urls" data-payload='{"urls":["http://127.0.0.1/"]}'>Blocked private target</button>
+            <button class="case-btn" data-endpoint="/healthz" data-payload=''>Health probe</button>
+            <button class="case-btn" data-endpoint="/readyz" data-payload=''>Readiness probe</button>
+            <button class="case-btn" data-endpoint="/openapi.json" data-payload=''>OpenAPI spec</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid" style="margin-top: 20px;">
+        <div class="panel stack">
+          <div>
+            <span id="statusPill" class="status">Waiting</span>
+          </div>
+          <pre id="rawOutput">No request sent yet.</pre>
+        </div>
+
+        <div class="panel stack">
+          <h2>Rendered Results</h2>
+          <div id="results" class="results">
+            <p class="meta">Structured tool results will render here when available.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const baseUrl = document.getElementById("baseUrl");
+      const authToken = document.getElementById("authToken");
+      const endpoint = document.getElementById("endpoint");
+      const payload = document.getElementById("payload");
+      const sendBtn = document.getElementById("sendBtn");
+      const rawOutput = document.getElementById("rawOutput");
+      const statusPill = document.getElementById("statusPill");
+      const results = document.getElementById("results");
+      const defaultPayloads = {
+        "/agent-search": `{
+  "query": "open webui",
+  "max_results": 3,
+  "search_depth": "basic",
+  "topic": "general",
+  "search_engine": "auto",
+  "language": "en",
+  "include_domains": [],
+  "exclude_domains": [],
+  "include_raw_content": false,
+  "extract_depth": "summary"
+}`,
+        "/extract-from-urls": `{
+  "urls": [
+    "https://docs.openwebui.com/"
+  ],
+  "focus_query": "open webui",
+  "include_raw_content": false
+}`,
+        "/fetch-content": `{
+  "url": "https://docs.openwebui.com/",
+  "focus_query": "open webui",
+  "include_raw_content": false
+}`,
+      };
+
+      function setStatus(ok, text) {
+        statusPill.textContent = text;
+        statusPill.className = ok === null ? "status" : ok ? "status ok" : "status bad";
+      }
+
+      function renderResults(data) {
+        results.innerHTML = "";
+
+        if (!data || typeof data !== "object") {
+          results.innerHTML = '<p class="meta">Response is not structured JSON.</p>';
+          return;
+        }
+
+        if (Array.isArray(data.results)) {
+          if (data.results.length === 0) {
+            results.innerHTML = '<p class="meta">Empty result set returned.</p>';
+            return;
+          }
+          for (const item of data.results) {
+            const card = document.createElement("article");
+            card.className = "result-card";
+            const title = item.title || item.url || "Untitled";
+            const snippet = item.snippet || item.content || "";
+            card.innerHTML = `
+              <a href="${item.url}" target="_blank" rel="noreferrer">${title}</a>
+              <p>${snippet}</p>
+              <div class="meta">score: ${item.score ?? "n/a"}</div>
+              <div class="meta">${item.url || ""}</div>
+            `;
+            results.appendChild(card);
+          }
+          return;
+        }
+
+        if (data.result && typeof data.result === "object") {
+          const item = data.result;
+          const card = document.createElement("article");
+          card.className = "result-card";
+          const title = item.title || item.url || "Untitled";
+          const snippet = item.snippet || item.content || "";
+          card.innerHTML = `
+            <a href="${item.url}" target="_blank" rel="noreferrer">${title}</a>
+            <p>${snippet}</p>
+            <div class="meta">score: ${item.score ?? "n/a"}</div>
+            <div class="meta">${item.url || ""}</div>
+          `;
+          results.appendChild(card);
+          return;
+        }
+
+        if (data.paths) {
+          results.innerHTML = '<p class="meta">OpenAPI document returned successfully.</p>';
+          return;
+        }
+
+        if (data.status) {
+          results.innerHTML = `<p class="meta">Status: ${data.status}</p>`;
+          return;
+        }
+
+        results.innerHTML = '<p class="meta">No renderable results section found.</p>';
+      }
+
+      async function sendRequest() {
+        const selectedEndpoint = endpoint.value;
+        const url = `${baseUrl.value.replace(/\/$/, "")}${selectedEndpoint}`;
+        const headers = {};
+        const token = authToken.value.trim();
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+
+        let options = { method: "GET", headers };
+        if (selectedEndpoint === "/agent-search" || selectedEndpoint === "/extract-from-urls" || selectedEndpoint === "/fetch-content" || selectedEndpoint === "/health-check") {
+          headers["Content-Type"] = "application/json";
+          options = {
+            method: "POST",
+            headers,
+            body: selectedEndpoint === "/health-check" ? "{}" : payload.value.trim(),
+          };
+        }
+
+        setStatus(null, "Loading");
+        rawOutput.textContent = "Sending request...";
+        results.innerHTML = '<p class="meta">Waiting for response.</p>';
+
+        try {
+          const response = await fetch(url, options);
+          const text = await response.text();
+          let data;
+          try {
+            data = JSON.parse(text);
+          } catch {
+            data = text;
+          }
+
+          setStatus(response.ok, `${response.status} ${response.statusText}`);
+          rawOutput.textContent = JSON.stringify(
+            {
+              request: {
+                url,
+                method: options.method,
+                headers,
+                body: options.body ? JSON.parse(options.body) : null,
+              },
+              response: data,
+            },
+            null,
+            2
+          );
+          renderResults(data);
+        } catch (error) {
+          setStatus(false, "Network error");
+          rawOutput.textContent = JSON.stringify({ error: String(error) }, null, 2);
+          results.innerHTML = '<p class="meta">Request failed before a response was received.</p>';
+        }
+      }
+
+      sendBtn.addEventListener("click", sendRequest);
+      endpoint.addEventListener("change", () => {
+        const needsBody = ["/agent-search", "/extract-from-urls", "/fetch-content"].includes(endpoint.value);
+        payload.disabled = !needsBody;
+        if (needsBody && defaultPayloads[endpoint.value]) {
+          payload.value = defaultPayloads[endpoint.value];
+        }
+      });
+
+      document.querySelectorAll(".case-btn").forEach((button) => {
+        button.addEventListener("click", () => {
+          endpoint.value = button.dataset.endpoint;
+          payload.disabled = !["/agent-search", "/extract-from-urls", "/fetch-content"].includes(endpoint.value);
+          payload.value = button.dataset.payload || "";
+          sendRequest();
+        });
+      });
+    </script>
+  </body>
+</html>
