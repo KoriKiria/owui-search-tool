@@ -70,7 +70,7 @@ jobs:
     needs:
       - test
       - docker-build
-    if: github.event_name == 'workflow_dispatch'
+#    if: github.event_name == 'workflow_dispatch'
 
     steps:
       - name: Check out repository
