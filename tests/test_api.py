@@ -72,10 +72,14 @@ class StubResearchService:
         )
 
 
-def make_client(service: StubResearchService) -> TestClient:
+def make_client(
+    service: StubResearchService,
+    *,
+    raise_server_exceptions: bool = True,
+) -> TestClient:
     app = create_app()
     app.dependency_overrides[get_research_service] = lambda: service
-    return TestClient(app)
+    return TestClient(app, raise_server_exceptions=raise_server_exceptions)
 
 
 def test_health_endpoints(client: TestClient) -> None:
@@ -208,7 +212,10 @@ def test_no_results_response() -> None:
 
 
 def test_service_exception_returns_500() -> None:
-    client = make_client(StubResearchService(exc=RuntimeError("boom")))
+    client = make_client(
+        StubResearchService(exc=RuntimeError("boom")),
+        raise_server_exceptions=False,
+    )
     response = client.post("/agent-search", json={"query": "open webui"})
     assert response.status_code == 500
     assert response.json()["error"]["code"] == "INTERNAL_ERROR"
