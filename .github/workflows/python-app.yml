@@ -24,8 +24,7 @@ permissions:
 
 env:
   PYTHON_VERSION: "3.10"
-  IMAGE_REPOSITORY: pentakilo/kilosearch
-
+  IMAGE_REPOSITORY:
 jobs:
   test:
     runs-on: ubuntu-latest
