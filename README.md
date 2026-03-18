@@ -24,6 +24,16 @@ Import this server into Open WebUI as an OpenAPI tool server using the generated
 docker compose up --build
 ```
 
+## GitHub Actions
+
+The repository workflow runs `pytest` and validates the Docker build on pushes, pull requests, and manual runs.
+
+Manual Docker Hub publishing is available through GitHub Actions `workflow_dispatch` and pushes to `pentakilo/kilosearch`.
+
+Required repository secret:
+
+- `DOCKERHUB_TOKEN`: Docker Hub access token for the `pentakilo` account
+
 Example with explicit file path from the repo root:
 
 ```bash

@@ -52,3 +52,7 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+/.idea/.gitignore
+/.idea/indexLayout.xml
+/.idea/encodings.xml
+/.idea/vcs.xml
